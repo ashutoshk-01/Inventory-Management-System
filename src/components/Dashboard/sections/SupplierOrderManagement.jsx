@@ -54,22 +54,16 @@ const SupplierOrderManagement = () => {
     setIsLoading(true);
     try {
       const response = await managerService.getSupplierOrders('ALL');
-      console.log('Supplier Orders API Response:', response);
-      console.log('Response data:', response?.data);
-      if (response && response.data) {
-        setOrders(response.data);
-        console.log('Orders set in state:', response.data);
+      if (response.success) {
+        setOrders(response.data || []);
       } else {
-        console.log('No data in response or invalid response format');
+        showSnackbar(response.message || 'Failed to fetch orders', 'error');
+        setOrders([]);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status
-      });
       showSnackbar('Error fetching orders', 'error');
+      setOrders([]);
     } finally {
       setIsLoading(false);
     }
@@ -93,21 +87,21 @@ const SupplierOrderManagement = () => {
           costAtOrder: parseFloat(product.costAtOrder)
         })),
         totalAmount: formData.totalAmount,
-        status: 'Pending'
+        status: 'PENDING'
       };
 
       const response = await managerService.addSupplierOrder(orderData);
-      if (response.data === "Order added") {
-        showSnackbar('Order added successfully', 'success');
+      if (response.success) {
+        showSnackbar(response.message || 'Order added successfully', 'success');
         setOpen(false);
         resetForm();
-        fetchOrders();
+        await fetchOrders();
       } else {
-        throw new Error(response.data || 'Failed to add order');
+        throw new Error(response.message || 'Failed to add order');
       }
     } catch (error) {
       console.error('Error adding order:', error);
-      showSnackbar(error.response?.data || 'Error adding order', 'error');
+      showSnackbar(error.message || 'Error adding order', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -115,12 +109,16 @@ const SupplierOrderManagement = () => {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      await managerService.updateSupplierOrderStatus(orderId, newStatus);
-      showSnackbar('Order status updated successfully', 'success');
-      fetchOrders();
+      const response = await managerService.updateSupplierOrderStatus(orderId, newStatus);
+      if (response.success) {
+        showSnackbar(response.message || 'Order status updated successfully', 'success');
+        await fetchOrders();
+      } else {
+        throw new Error(response.message || 'Failed to update order status');
+      }
     } catch (error) {
       console.error('Error updating order status:', error);
-      showSnackbar('Error updating order status', 'error');
+      showSnackbar(error.message || 'Error updating order status', 'error');
     }
   };
 

@@ -53,22 +53,16 @@ const OrderManagement = () => {
         try {
             setIsLoading(true);
             const response = await managerService.getCustomerOrders('ALL');
-            console.log('Customer Orders API Response:', response);
-            console.log('Response data:', response?.data);
-            if (response && response.data) {
-                setOrders(response.data);
-                console.log('Orders set in state:', response.data);
+            if (response.success) {
+                setOrders(response.data || []);
             } else {
-                console.log('No data in response or invalid response format');
+                showSnackbar(response.message || 'Failed to fetch orders', 'error');
+                setOrders([]);
             }
         } catch (error) {
             console.error('Error fetching orders:', error);
-            console.error('Error details:', {
-                message: error.message,
-                response: error.response,
-                status: error.response?.status
-            });
             showSnackbar('Error fetching orders', 'error');
+            setOrders([]);
         } finally {
             setIsLoading(false);
         }
@@ -83,25 +77,30 @@ const OrderManagement = () => {
 
         setIsLoading(true);
         try {
-                const orderData = {
-                    customerId: formData.customerId,
-                    products: formData.products.map(product => ({
-                        productId: product.productId,
-                        quantity: parseInt(product.quantity),
+            const orderData = {
+                customerId: formData.customerId,
+                products: formData.products.map(product => ({
+                    productId: product.productId,
+                    quantity: parseInt(product.quantity),
                     priceAtOrder: parseFloat(product.priceAtOrder)
-                    })),
+                })),
                 totalAmount: formData.totalAmount,
-                profitOnProducts: formData.profitOnProducts
-                };
+                profitOnProducts: formData.profitOnProducts,
+                status: 'PENDING'
+            };
 
-                await managerService.addCustomerOrder(orderData);
-            showSnackbar('Order added successfully', 'success');
-            setOpen(false);
-            resetForm();
-            fetchOrders();
+            const response = await managerService.addCustomerOrder(orderData);
+            if (response.success) {
+                showSnackbar(response.message || 'Order added successfully', 'success');
+                setOpen(false);
+                resetForm();
+                await fetchOrders();
+            } else {
+                throw new Error(response.message || 'Failed to add order');
+            }
         } catch (error) {
             console.error('Error adding order:', error);
-            showSnackbar(error.response?.data || 'Error adding order', 'error');
+            showSnackbar(error.message || 'Error adding order', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -109,12 +108,16 @@ const OrderManagement = () => {
 
     const handleStatusUpdate = async (orderId, newStatus) => {
         try {
-            await managerService.updateCustomerOrderStatus(orderId, newStatus);
-            showSnackbar('Order status updated successfully', 'success');
-            fetchOrders();
+            const response = await managerService.updateCustomerOrderStatus(orderId, newStatus);
+            if (response.success) {
+                showSnackbar(response.message || 'Order status updated successfully', 'success');
+                await fetchOrders();
+            } else {
+                throw new Error(response.message || 'Failed to update order status');
+            }
         } catch (error) {
             console.error('Error updating order status:', error);
-            showSnackbar('Error updating order status', 'error');
+            showSnackbar(error.message || 'Error updating order status', 'error');
         }
     };
 

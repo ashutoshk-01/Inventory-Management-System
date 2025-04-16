@@ -55,22 +55,16 @@ const CategoryManagement = () => {
     try {
       setIsLoading(true);
       const response = await managerService.getCategories();
-      if (response && Array.isArray(response)) {
-        // Filter out non-EMPLOYEE roles and remove EMPLOYEE_ prefix for display
-        const employeeCategories = response
-          .filter(role => role.name.startsWith('EMPLOYEE_'))
-          .map(role => ({
-            ...role,
-            displayName: role.name.replace('EMPLOYEE_', '')
-          }));
-        setCategories(employeeCategories);
+      if (response.success) {
+        setCategories(response.data || []);
       } else {
-        console.error('Invalid response format:', response);
-        showSnackbar('Error: Invalid response format', 'error');
+        showSnackbar(response.message || 'Failed to fetch categories', 'error');
+        setCategories([]);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      showSnackbar(error.response?.data || 'Error fetching categories', 'error');
+      showSnackbar(error.message || 'Error fetching categories', 'error');
+      setCategories([]);
     } finally {
       setIsLoading(false);
     }
@@ -86,28 +80,24 @@ const CategoryManagement = () => {
     setIsLoading(true);
     try {
       const category = {
-        id: selectedCategory ? selectedCategory.id : null,  // Include id if editing
-        name: categoryName.trim(),  // Don't convert to uppercase, backend will handle EMPLOYEE_ prefix
-        addedby: null  // Backend will set this
+        id: selectedCategory ? selectedCategory.id : null,
+        name: categoryName.trim(),
+        addedby: null
       };
       
       const response = await managerService.addCategory(category);
-      if (response.data === "Category is added") {
-        showSnackbar('Category added successfully', 'success');
+      if (response.success) {
+        showSnackbar(response.message || 'Category added successfully', 'success');
         setOpen(false);
         setCategoryName('');
         setSelectedCategory(null);
         await fetchCategories();
       } else {
-        throw new Error(response.data || 'Failed to add category');
+        throw new Error(response.message || 'Failed to add category');
       }
     } catch (error) {
       console.error('Error adding category:', error);
-      if (error.response?.status === 409) {
-        showSnackbar('Category already exists', 'error');
-      } else {
-        showSnackbar(error.response?.data || error.message || 'Error adding category', 'error');
-      }
+      showSnackbar(error.message || 'Error adding category', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -315,7 +305,7 @@ const CategoryManagement = () => {
                           }}
                         >
                           <ListItemText 
-                            primary={category.displayName} 
+                            primary={category.name} 
                             secondary={`Added by: ${category.addedby?.name || 'System'}`}
                           />
                           <ListItemSecondaryAction>
@@ -324,7 +314,7 @@ const CategoryManagement = () => {
                               aria-label="edit"
                               onClick={() => {
                                 setSelectedCategory(category);
-                                setCategoryName(category.displayName);
+                                setCategoryName(category.name);
                                 setActiveTab(0);
                               }}
                             >

@@ -43,7 +43,7 @@ const EmployeeManagement = () => {
     password: '',
     contact: '',
     salary: '',
-    role: null
+    role: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -63,15 +63,15 @@ const EmployeeManagement = () => {
     try {
       setIsLoading(true);
       const response = await managerService.getAllEmployees();
-      if (response && response.data) {
-        setEmployees(response.data);
+      if (response.success) {
+        setEmployees(response.data || []);
       } else {
-        showSnackbar('Error: Invalid response format', 'error');
+        showSnackbar(response.message || 'Error fetching employees', 'error');
         setEmployees([]);
       }
     } catch (error) {
       console.error('Error fetching employees:', error);
-      showSnackbar(error.response?.data?.message || 'Error fetching employees', 'error');
+      showSnackbar(error.message || 'Error fetching employees', 'error');
       setEmployees([]);
     } finally {
       setIsLoading(false);
@@ -82,11 +82,14 @@ const EmployeeManagement = () => {
     try {
       const response = await managerService.getEmployeeRoles();
       if (response.data) {
-        setRoles(response.data.map(role => ({
-          _id: role.id,
-          name: role.name,
-          addedby: role.addedby
-        })));
+        const employeeRoles = response.data
+          .filter(role => role.name.startsWith('EMPLOYEE_'))
+          .map(role => ({
+            _id: role.id,
+            name: role.name,
+            addedby: role.addedby
+          }));
+        setRoles(employeeRoles);
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
@@ -108,8 +111,8 @@ const EmployeeManagement = () => {
         password: formData.password,
         contact: formData.contact,
         salary: parseFloat(formData.salary || 0.0),
-        role: {
-          _id: formData.role._id,
+        assigned: {
+          id: formData.role._id,
           name: formData.role.name,
           addedby: formData.role.addedby
         },
@@ -118,38 +121,22 @@ const EmployeeManagement = () => {
 
       let response;
       if (selectedEmployee) {
-        const { password, ...updateData } = employeeData;
-        response = await managerService.updateEmployee(updateData);
-        if (response.data === "Employee has been updated") {
-          showSnackbar('Employee updated successfully', 'success');
-        } else {
-          throw new Error(response.data || 'Failed to update employee');
-        }
+        response = await managerService.updateEmployee(employeeData);
       } else {
         response = await managerService.addEmployee(employeeData);
-        if (response.data === "Employee has been added") {
-          showSnackbar('Employee added successfully', 'success');
-        } else {
-          throw new Error(response.data || 'Failed to add employee');
-        }
       }
-      
-      setOpen(false);
-      resetForm();
-      await fetchEmployees();
+
+      if (response.success) {
+        showSnackbar(response.message || 'Operation completed successfully', 'success');
+        setOpen(false);
+        resetForm();
+        await fetchEmployees();
+      } else {
+        throw new Error(response.message || 'Operation failed');
+      }
     } catch (error) {
       console.error('Error processing employee:', error);
-      if (error.response?.status === 409) {
-        showSnackbar('Employee with this email already exists', 'error');
-      } else if (error.response?.status === 400) {
-        showSnackbar('Invalid data format. Please check all fields.', 'error');
-      } else if (error.response?.status === 403) {
-        showSnackbar('Access denied. You do not have permission to perform this action.', 'error');
-      } else if (error.response?.status === 404) {
-        showSnackbar('Employee not found', 'error');
-      } else {
-        showSnackbar(error.response?.data?.message || error.message || 'Error processing employee', 'error');
-      }
+      showSnackbar(error.message || 'Error processing employee', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +159,7 @@ const EmployeeManagement = () => {
       password: '',
       contact: '',
       salary: '',
-      role: null
+      role: ''
     });
     setSelectedEmployee(null);
   };
@@ -197,6 +184,18 @@ const EmployeeManagement = () => {
     if (newValue === 0) {
       resetForm();
     }
+  };
+
+  const handleRoleChange = (e) => {
+    const selectedRole = roles.find(role => role._id === e.target.value);
+    setFormData(prev => ({
+      ...prev,
+      role: selectedRole ? {
+        _id: selectedRole._id,
+        name: selectedRole.name,
+        addedby: selectedRole.addedby
+      } : ''
+    }));
   };
 
   return (
@@ -358,14 +357,8 @@ const EmployeeManagement = () => {
                           labelId="role-select-label"
                           id="role-select"
                           label="Role"
-                          value={formData.role?._id || ''}
-                          onChange={(e) => {
-                            const selectedRole = roles.find(role => role._id === e.target.value);
-                            setFormData(prev => ({
-                              ...prev,
-                              role: selectedRole
-                            }));
-                          }}
+                          value={formData.role ? formData.role._id : ''}
+                          onChange={handleRoleChange}
                           required
                           MenuProps={{
                             PaperProps: {
@@ -382,6 +375,9 @@ const EmployeeManagement = () => {
                             }
                           }}
                         >
+                          <MenuItem value="">
+                            <em>Select a role</em>
+                          </MenuItem>
                           {roles && roles.length > 0 ? (
                             roles.map((role) => (
                               <MenuItem 
@@ -400,8 +396,8 @@ const EmployeeManagement = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem key="no-roles" value="" disabled>
-                              No roles available
+                            <MenuItem value="">
+                              <em>No roles available</em>
                             </MenuItem>
                           )}
                         </Select>
@@ -535,8 +531,12 @@ const EmployeeManagement = () => {
                                 setFormData({
                                   email: employee.email,
                                   contact: employee.contact,
-                                  salary: employee.salary,
-                                  role: employee.assigned
+                                  salary: employee.salary || '',
+                                  role: employee.assigned ? {
+                                    _id: employee.assigned._id,
+                                    name: employee.assigned.name,
+                                    addedby: employee.assigned.addedby
+                                  } : ''
                                 });
                                 setActiveTab(0);
                               }}
