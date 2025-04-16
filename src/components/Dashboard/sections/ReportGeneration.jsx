@@ -44,22 +44,40 @@ const ReportGeneration = () => {
     try {
       const response = await managerService.generateReport(reportParams.month, reportParams.year);
       
-      // Create a blob from the response data
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create a link and trigger download
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `manager_report_${reportParams.month}_${reportParams.year}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      showSnackbar('Report generated successfully', 'success');
+      if (response.success && response.data instanceof Blob) {
+        // Create a blob from the response data
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        
+        // Check if the blob is empty or invalid
+        if (blob.size === 0) {
+          throw new Error('Generated report is empty');
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        
+        // Create a link and trigger download
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `manager_report_${reportParams.month}_${reportParams.year}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        link.remove();
+        
+        showSnackbar('Report generated and downloaded successfully', 'success');
+      } else {
+        throw new Error(response.message || 'Failed to generate report');
+      }
     } catch (error) {
-      const errorData = managerService.handleError(error);
-      showSnackbar(errorData.message, 'error');
+      console.error('Error generating report:', error);
+      showSnackbar(
+        error.message === 'Network Error' 
+          ? 'Unable to connect to server' 
+          : error.message || 'Failed to generate report', 
+        'error'
+      );
     } finally {
       setIsLoading(false);
     }
