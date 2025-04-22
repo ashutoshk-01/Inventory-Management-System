@@ -266,11 +266,9 @@ const managerService = {
         }
     },
 
-    getSupplierOrders: async (status = 'ALL') => {
+    getSupplierOrders: async () => {
         try {
-            const response = await axiosInstance.post('/supplierorder/getorders', { 
-                status: status === 'ALL' ? status : status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
-            });
+            const response = await axiosInstance.post('/supplierorder/getorders', {status: 'Pending'});
             return {
                 success: true,
                 data: response.data || []
@@ -315,9 +313,9 @@ const managerService = {
         }
     },
 
-    getCustomerOrders: async (status = 'ALL') => {
+    getCustomerOrders: async () => {
         try {
-            const response = await axiosInstance.post('/customerorder/getorders', { status });
+            const response = await axiosInstance.post('/customerorder/getorders', { status : 'Pending' });
             return {
                 success: true,
                 data: response.data || []
@@ -336,7 +334,7 @@ const managerService = {
         try {
             const response = await axiosInstance.put('/customerorder/updatestatus', {
                 id,
-                status
+                status: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
             });
             return {
                 success: true,
@@ -390,21 +388,20 @@ const managerService = {
         return axiosInstance.put('/refill/updaterefill', formattedRefill);
     },
 
-    // Report Generation
     generateReport: async (month, year) => {
         try {
-            const response = await axiosInstance.get('/generatereport', {
-                params: {
-                    month: month,
-                    year: year
-                },
-                responseType: 'blob', // Important for receiving PDF data
-                headers: {
-                    'Accept': 'application/pdf'
+            const response = await axiosInstance.post(
+                '/generatereport',
+                { month: Number(month), year: Number(year) }, // ✅ Send directly in body
+                {
+                    responseType: 'blob',
+                    headers: {
+                        'Accept': 'application/pdf',
+                        'Content-Type': 'application/json'
+                    }
                 }
-            });
-            
-            // Check if the response is actually a PDF
+            );
+    
             if (response.data instanceof Blob) {
                 return {
                     success: true,
@@ -422,6 +419,7 @@ const managerService = {
             };
         }
     }
+    
 };
 
 const handleError = managerService.handleError;

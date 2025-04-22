@@ -52,7 +52,7 @@ const OrderManagement = () => {
     const fetchOrders = async () => {
         try {
             setIsLoading(true);
-            const response = await managerService.getCustomerOrders('ALL');
+            const response = await managerService.getCustomerOrders();
             if (response.success) {
                 setOrders(response.data || []);
             } else {
@@ -86,7 +86,7 @@ const OrderManagement = () => {
                 })),
                 totalAmount: formData.totalAmount,
                 profitOnProducts: formData.profitOnProducts,
-                status: 'PENDING'
+                status: 'Pending'
             };
 
             const response = await managerService.addCustomerOrder(orderData);
@@ -141,14 +141,14 @@ const OrderManagement = () => {
             ...newProducts[index],
             [field]: value
         };
-        
+
         // Calculate total amount and profit
         const total = newProducts.reduce((sum, product) => {
             const quantity = parseInt(product.quantity || 0);
             const price = parseFloat(product.priceAtOrder || 0);
             return sum + (quantity * price);
         }, 0);
-        
+
         // Calculate profit (20% margin)
         const profit = total * 0.2;
 
@@ -217,7 +217,7 @@ const OrderManagement = () => {
                 <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
                     {orders.length === 0 ? (
                         <Box
-                sx={{ 
+                            sx={{
                                 p: 3,
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -231,7 +231,7 @@ const OrderManagement = () => {
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 Click the "Add New Order" button to create your first order
-                                </Typography>
+                            </Typography>
                         </Box>
                     ) : (
                         <Table>
@@ -253,17 +253,16 @@ const OrderManagement = () => {
                                         <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
                                         <TableCell>${order.profitOnProducts.toFixed(2)}</TableCell>
                                         <TableCell>
-                                                <Select
+                                            <Select
                                                 value={order.status}
                                                 onChange={(e) => handleStatusUpdate(order.orderId, e.target.value)}
                                                 size="small"
                                                 sx={{ minWidth: 120 }}
                                             >
                                                 <MenuItem value="PENDING">Pending</MenuItem>
-                                                <MenuItem value="PROCESSING">Processing</MenuItem>
                                                 <MenuItem value="COMPLETED">Completed</MenuItem>
                                                 <MenuItem value="CANCELLED">Cancelled</MenuItem>
-                                                </Select>
+                                            </Select>
                                         </TableCell>
                                         <TableCell>
                                             <IconButton onClick={() => {
@@ -289,15 +288,15 @@ const OrderManagement = () => {
                 <DialogContent>
                     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
                         <Grid container spacing={3}>
-                                        <Grid item xs={12}>
-                                            <TextField
+                            <Grid item xs={12}>
+                                <TextField
                                     label="Customer ID"
                                     value={formData.customerId}
                                     onChange={(e) => setFormData(prev => ({ ...prev, customerId: e.target.value }))}
                                     fullWidth
-                                                required
-                                            />
-                                        </Grid>
+                                    required
+                                />
+                            </Grid>
 
                             {formData.products.map((product, index) => (
                                 <Grid item xs={12} key={index}>
@@ -313,15 +312,15 @@ const OrderManagement = () => {
                                                 />
                                             </Grid>
                                             <Grid item xs={12} sm={4}>
-                                            <TextField
+                                                <TextField
                                                     label="Quantity"
-                                                type="number"
+                                                    type="number"
                                                     value={product.quantity}
                                                     onChange={(e) => handleProductChange(index, 'quantity', e.target.value)}
                                                     fullWidth
-                                                required
-                                            />
-                                        </Grid>
+                                                    required
+                                                />
+                                            </Grid>
                                             <Grid item xs={12} sm={4}>
                                                 <TextField
                                                     label="Price"
@@ -331,7 +330,7 @@ const OrderManagement = () => {
                                                     fullWidth
                                                     required
                                                 />
-                                        </Grid>
+                                            </Grid>
                                         </Grid>
                                         {index > 0 && (
                                             <Button
@@ -344,30 +343,30 @@ const OrderManagement = () => {
                                             </Button>
                                         )}
                                     </Card>
-                                                </Grid>
+                                </Grid>
                             ))}
 
-                                                <Grid item xs={12}>
-                                                        <Button
-                                                            variant="outlined"
+                            <Grid item xs={12}>
+                                <Button
+                                    variant="outlined"
                                     onClick={addProduct}
                                     startIcon={<Add />}
                                 >
                                     Add Another Product
-                                                        </Button>
-                                            </Grid>
+                                </Button>
+                            </Grid>
 
-                                            <Grid item xs={12}>
+                            <Grid item xs={12}>
                                 <Typography variant="h6">
                                     Total Amount: ${formData.totalAmount.toFixed(2)}
-                                                </Typography>
-                                            </Grid>
-                                            <Grid item xs={12}>
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
                                 <Typography variant="h6">
                                     Estimated Profit: ${formData.profitOnProducts.toFixed(2)}
-                                                </Typography>
-                                            </Grid>
-                                        </Grid>
+                                </Typography>
+                            </Grid>
+                        </Grid>
                     </Box>
                 </DialogContent>
                 <DialogActions>
