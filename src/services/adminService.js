@@ -205,28 +205,32 @@ const adminService = {
 
     generateReport: async (month, year) => {
         try {
-            const response = await axiosInstance.post('/generatereport', {
-                month: parseInt(month),
-                year: parseInt(year)
-            });
-            
-            if (response.data) {
+            const response = await axiosInstance.post(
+                '/generatereport',
+                { month: Number(month), year: Number(year) }, // ✅ Send directly in body
+                {
+                    responseType: 'blob',
+                    headers: {
+                        'Accept': 'application/pdf',
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+    
+            if (response.data instanceof Blob) {
                 return {
                     success: true,
                     data: response.data,
-                    message: "Report generated successfully"
+                    message: 'Report generated successfully'
                 };
             } else {
-                return {
-                    success: false,
-                    message: "No data received from server"
-                };
+                throw new Error('Invalid response format');
             }
         } catch (error) {
-            console.error("Error generating report:", error);
+            console.error('Error generating report:', error);
             return {
                 success: false,
-                message: error.response?.data || "Failed to generate report"
+                message: error.response?.data?.message || 'Failed to generate report'
             };
         }
     },

@@ -392,7 +392,7 @@ const managerService = {
         try {
             const response = await axiosInstance.post(
                 '/generatereport',
-                { month: Number(month), year: Number(year) }, // ✅ Send directly in body
+                { month: Number(month), year: Number(year) }, 
                 {
                     responseType: 'blob',
                     headers: {

@@ -29,9 +29,9 @@ import {
   Switch,
   FormControlLabel
 } from "@mui/material";
-import { 
-  Add as AddIcon, 
-  Edit as EditIcon, 
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
   Delete as DeleteIcon,
   SupervisorAccount as ManagerIcon,
   Phone as PhoneIcon,
@@ -94,7 +94,7 @@ const ManagerManagement = () => {
         displayName: role.name.replace('MANAGER_', '')
       }));
       setDepartments(roles);
-      
+
       if (!formData.department && roles.length > 0) {
         setFormData(prev => ({
           ...prev,
@@ -110,7 +110,7 @@ const ManagerManagement = () => {
   };
 
   useEffect(() => {
-    
+
     fetchDepartments();
   }, []);
 
@@ -167,7 +167,7 @@ const ManagerManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
@@ -176,16 +176,16 @@ const ManagerManagement = () => {
 
     setLoading(true);
     try {
-      const selectedRole = departments.find(role => 
+      const selectedRole = departments.find(role =>
         role.name === `MANAGER_${formData.department}`
       );
-      
+
       if (!selectedRole) {
         setError('Selected department not found');
         setLoading(false);
         return;
       }
-      
+
       const managerData = {
         email: formData.email,
         contact: formData.phone,
@@ -239,29 +239,29 @@ const ManagerManagement = () => {
 
   return (
     <Box className="card-3d-soft" sx={{ p: 4, borderRadius: 3, backgroundColor: 'white' }}>
-      <Box 
-        className="section-title" 
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2, 
-          mb: 4 
+      <Box
+        className="section-title"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          mb: 4
         }}
       >
-        <ManagerIcon 
-          sx={{ 
-            fontSize: 32, 
+        <ManagerIcon
+          sx={{
+            fontSize: 32,
             color: 'primary.main',
             backgroundColor: 'primary.light',
             p: 1,
             borderRadius: '50%',
             boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-          }} 
+          }}
         />
-        <Typography 
-          variant="h4" 
+        <Typography
+          variant="h4"
           className="section-title"
-          sx={{ 
+          sx={{
             fontWeight: 'bold',
             background: 'linear-gradient(45deg, #4338ca 30%, #6366f1 90%)',
             WebkitBackgroundClip: 'text',
@@ -283,12 +283,12 @@ const ManagerManagement = () => {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <Button 
-          variant="contained" 
-          startIcon={<AddIcon />} 
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
           className="btn-3d btn-3d-primary"
           onClick={() => handleOpenDialog()}
-          sx={{ 
+          sx={{
             mb: 3,
             background: 'linear-gradient(45deg, #4338ca 30%, #6366f1 90%)',
             boxShadow: '0 6px 12px rgba(99, 102, 241, 0.3)',
@@ -316,16 +316,16 @@ const ManagerManagement = () => {
             {managers.map((manager) => (
               <TableRow
                 key={manager.id}
-                sx={{ 
-                  '&:hover': { 
-                    backgroundColor: 'rgba(242, 242, 247, 0.5)' 
-                  } 
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'rgba(242, 242, 247, 0.5)'
+                  }
                 }}
               >
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar 
-                      sx={{ 
+                    <Avatar
+                      sx={{
                         backgroundColor: manager.active ? 'primary.light' : 'grey.300',
                         color: manager.active ? 'primary.main' : 'text.secondary',
                         fontWeight: 'bold',
@@ -347,17 +347,20 @@ const ManagerManagement = () => {
                   </Box>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{manager.department}</Typography>
+                  <Typography variant="body2">
+                    {manager.assigned.name.replace("MANAGER_", "")}
+                  </Typography>
+
                 </TableCell>
                 <TableCell align="right">
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                     <Tooltip title="Edit Manager" arrow>
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size="small"
                         color="primary"
                         onClick={() => handleOpenDialog(manager)}
                         className="btn-3d"
-                        sx={{ 
+                        sx={{
                           backgroundColor: 'rgba(99, 102, 241, 0.1)',
                           '&:hover': { backgroundColor: 'rgba(99, 102, 241, 0.2)' }
                         }}
@@ -366,12 +369,12 @@ const ManagerManagement = () => {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Delete Manager" arrow>
-                      <IconButton 
-                        size="small" 
+                      <IconButton
+                        size="small"
                         color="error"
                         onClick={() => handleDelete(manager.email)}
                         className="btn-3d"
-                        sx={{ 
+                        sx={{
                           backgroundColor: 'rgba(239, 68, 68, 0.1)',
                           '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.2)' }
                         }}
@@ -387,14 +390,14 @@ const ManagerManagement = () => {
         </Table>
       </TableContainer>
 
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={handleClose}
         maxWidth="md"
         fullWidth
         PaperProps={{
           className: 'card-3d',
-          sx: { 
+          sx: {
             borderRadius: 3,
             backgroundImage: 'linear-gradient(to bottom right, rgba(255,255,255,0.9), rgba(255,255,255,0.8))',
             backdropFilter: 'blur(10px)',
@@ -402,8 +405,8 @@ const ManagerManagement = () => {
           }
         }}
       >
-        <DialogTitle sx={{ 
-          pb: 1, 
+        <DialogTitle sx={{
+          pb: 1,
           background: 'linear-gradient(45deg, #4338ca 30%, #6366f1 90%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
@@ -415,7 +418,7 @@ const ManagerManagement = () => {
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit} sx={{ pt: 1 }}>
             <Grid container spacing={2}>
-            
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -428,7 +431,7 @@ const ManagerManagement = () => {
                   className="input-3d"
                   variant="outlined"
                   required
-                  sx={{ 
+                  sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       '&.Mui-focused fieldset': {
@@ -450,7 +453,7 @@ const ManagerManagement = () => {
                   className="input-3d"
                   variant="outlined"
                   required
-                  sx={{ 
+                  sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       '&.Mui-focused fieldset': {
@@ -462,10 +465,10 @@ const ManagerManagement = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <FormControl 
-                  fullWidth 
+                <FormControl
+                  fullWidth
                   margin="normal"
-                  sx={{ 
+                  sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       '&.Mui-focused fieldset': {
@@ -518,13 +521,13 @@ const ManagerManagement = () => {
                 />
               </Grid>
             </Grid>
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 1 }}>
-              <Button 
+              <Button
                 onClick={handleClose}
                 variant="outlined"
                 className="btn-3d"
-                sx={{ 
+                sx={{
                   borderRadius: 2,
                   textTransform: 'none',
                   borderColor: 'rgba(99, 102, 241, 0.5)',
@@ -537,11 +540,11 @@ const ManagerManagement = () => {
               >
                 Cancel
               </Button>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 type="submit"
                 className="btn-3d btn-3d-primary"
-                sx={{ 
+                sx={{
                   borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 'bold',
